@@ -1,0 +1,7 @@
+# ignore intellij
+#
+.idea
+*.iml
+*.ipr
+*.iws
+
