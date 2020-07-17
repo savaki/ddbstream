@@ -4,6 +4,12 @@ ddbstream
 Simplifies the development of Go lambda functions that consume directly
 from dynamodb streams.
 
+### Use Case
+
+`ddbstream` allows once to subscribe to a dynamodb stream by passing a 
+function that should be invoked each time a new event (or set of events) is
+received.
+
 ### Example
 
 ```go
