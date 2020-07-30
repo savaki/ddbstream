@@ -40,7 +40,7 @@ func New(api dynamodbiface.DynamoDBAPI, streamAPI dynamodbstreamsiface.DynamoDBS
 }
 
 func (s *Stream) Subscribe(ctx context.Context, v interface{}) (*Subscriber, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(ctx)
 
 	describeInput := dynamodb.DescribeTableInput{
 		TableName: aws.String(s.tableName),
