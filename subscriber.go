@@ -137,7 +137,7 @@ func (s *Subscriber) mainLoop(ctx context.Context, streamARN string) (err error)
 		}
 	})
 	group.Go(func() error {
-		ticker := time.NewTicker(5 * time.Second)
+		ticker := time.NewTicker(s.options.pollInterval)
 		defer ticker.Stop()
 
 		var records []*dynamodbstreams.Record
