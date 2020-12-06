@@ -1,6 +1,10 @@
 package ddbstream
 
-import "time"
+import (
+	"time"
+
+	"github.com/aws/aws-sdk-go/service/dynamodbstreams"
+)
 
 const (
 	defaultBatchSize = 100
@@ -8,9 +12,10 @@ const (
 )
 
 type Options struct {
-	batchSize    int
-	debug        func(format string, args ...interface{})
-	pollInterval time.Duration
+	batchSize         int
+	debug             func(format string, args ...interface{})
+	pollInterval      time.Duration
+	shardIteratorType string
 }
 
 type Option func(*Options)
@@ -24,6 +29,12 @@ func WithBatchSize(n int) Option {
 func WithDebug(fn func(format string, args ...interface{})) Option {
 	return func(o *Options) {
 		o.debug = fn
+	}
+}
+
+func WithIteratorType(shardIteratorType string) Option {
+	return func(o *Options) {
+		o.shardIteratorType = shardIteratorType
 	}
 }
 
@@ -47,6 +58,9 @@ func buildOptions(opts ...Option) Options {
 	}
 	if options.pollInterval <= 0 {
 		options.pollInterval = defaultInterval
+	}
+	if options.shardIteratorType == "" {
+		options.shardIteratorType = dynamodbstreams.ShardIteratorTypeLatest
 	}
 
 	return options

@@ -36,6 +36,9 @@ func newInvoker(streamARN string, raw interface{}) invokeFunc {
 			return fn(ctx, data)
 		}
 
+	case func(ctx context.Context, records []*dynamodbstreams.Record) error:
+		return fn
+
 	default:
 		handler = newHandler(fn)
 	}

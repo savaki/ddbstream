@@ -2,10 +2,10 @@ package ddbstream
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -32,14 +32,33 @@ func TestLive(t *testing.T) {
 		WithCredentials(credentials.NewStaticCredentials(accessKeyID, secretAccessKey, sessionToken)).
 		WithRegion("us-west-2")))
 	stream := New(dynamodb.New(s), dynamodbstreams.New(s), tableName,
+		WithIteratorType(dynamodbstreams.ShardIteratorTypeTrimHorizon),
 		WithDebug(debug),
 	)
 
-	ctx := context.Background()
-	fn := func(ctx context.Context, data json.RawMessage) error {
-		fmt.Println(">", string(data))
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var counter int64
+	fn := func(ctx context.Context, records []*dynamodbstreams.Record) error {
+		atomic.AddInt64(&counter, int64(len(records)))
 		return nil
 	}
+
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				v := atomic.LoadInt64(&counter)
+				fmt.Println("replayed", v)
+			}
+		}
+	}()
 
 	sub, err := stream.Subscribe(ctx, fn)
 	if err != nil {
